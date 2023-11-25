@@ -1,31 +1,88 @@
-
+import { useState, useRef } from 'react';
+import { checkValidData } from '../Utils/validate';
 import Header from './Header';
 import img1 from '../images/bg2.png';
-import { useState } from 'react';
-
+import { auth } from '../Utils/firebase';
+import { createUserWithEmailAndPassword ,signInWithEmailAndPassword } from "firebase/auth";
 
 
 const Login = () => {
 
-  const [ isSign , setisSign] = useState(true);                      //state variable
+  const [isSign, setisSign] = useState(true);   //state variable
+  const [errorMessage, seterrorMessage] = useState(null);
+
+  const email = useRef(null);
+  const password = useRef(null);
+
+
+  const handleButtonclick = () => {
+
+    //validate the form data
+    const message = checkValidData(email.current.value, password.current.value);
+    seterrorMessage(message);
+
+    if(message) return;
+
+    if(!isSign){
+
+      // sign up logic from firebase 
+
+   createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
+     .then((userCredential) => {
+       // Signed up 
+       const user = userCredential.user;
+       // ...
+     })
+     .catch((error) => {
+       const errorCode = error.code;
+       const errorMessage = error.message;
+       
+       seterrorMessage(errorCode+"-"+errorMessage );
+
+    // ..
+  });
+
+    }else{
+
+      // sign in logic from firebase
+
+      signInWithEmailAndPassword(auth, email.current.value, password.current.value)
+  .then((userCredential) => {
+    // Signed in 
+    const user = userCredential.user;
+    // ...
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    seterrorMessage(errorCode+"-"+errorMessage );
+  });
+    }
+
+  }
 
   const toogleform = () => {
-     setisSign(!isSign);                          //setisSign true than issign is false & if it is flase than setissign is true 
+    setisSign(!isSign);                          //setisSign true than issign is false & if it is flase than setissign is true 
   };
 
   return (
     <div>
-      <Header/>
+      <Header />
       <div className='absolute w-full'>
-          <img className=' w-full' src={img1} alt='bg-img'/>
+        <img className=' w-full' src={img1} alt='bg-img' />
       </div>
-      <form className=' absolute p-12 w-3/12 my-36 mx-auto right-0 left-0 h-4/6  bg-black text-white rounded-lg  bg-opacity-90'>
-        <h1 className=' font-bold text-3xl py-4' >{isSign ? "Sign In" : "Sign Up"}</h1>               {/* if isSign is true than use text "Sign" otherwise use "Sign Up" */}
-        { !isSign && <input type='text' placeholder='Name' className=' p-4 my-2 w-full bg-gray-700  '/>}   {/* if it is not "isSign" than  show input */}
-        <input type='text' placeholder='Email Address' className=' p-4 my-2 w-full bg-gray-700  '/>
-        <input type='password' placeholder='Password' className=' p-4 my-2 w-full bg-gray-700'/>
-        <button className='p-4 my-4 bg-red-700  w-full rounded-md '>{isSign ? "Sign In" : "Sign Up"}</button> 
-        <p className="py-2 cursor-pointer " onClick={toogleform}>{isSign ? "new user? Sign Up" : "registerd already? Sign In"}</p>
+      <form onSubmit={(e) => e.preventDefault()} className=' absolute p-12 w-3/12 my-36 mx-auto right-0 left-0 h-6/6  bg-black text-white rounded-lg  bg-opacity-90'>
+        <h1 className=' font-bold text-3xl py-1  text-center' >
+          {isSign ? "Sign In" : "Sign Up"}
+        </h1>                                              {/* if isSign is true than use text "Sign" otherwise use "Sign Up" */}
+        {!isSign && <input type='text' placeholder='Name' className=' p-4 my-2 w-full bg-gray-700  ' />}   {/* if it is not "isSign" than  show input */}
+        <input ref={email} type='text' placeholder='Email Address' className=' p-4 my-2 w-full bg-gray-700  ' />
+        <input ref={password} type='password' placeholder='Password' className=' p-4 my-2 w-full bg-gray-700' />
+        <button className='p-4 my-4 bg-red-700  w-full rounded-md ' onClick={handleButtonclick}>     {/*(e)=>e.prevent.default helps to not submit form */}
+          {isSign ? "Sign In" : "Sign Up"}
+        </button>
+        <p className="py-2 cursor-pointer text-center " onClick={toogleform}>{isSign ? "new user? Sign Up" : "registerd already? Sign In"}</p>
+        <p className='text-red-500  text-lg font-bold text-center'>{errorMessage}</p>
       </form>
     </div>
   );
