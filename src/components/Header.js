@@ -45,8 +45,8 @@ const Header = () => {
     <div className=' absolute bg-gradient-to-b from-black flex w-full z-10  justify-between' >
       <img className="  px-3  w-64 " src={logo} alt='logo' />
       {user && (<div className='flex'>
-        <img className=" h-12 my-6 mx-2 w-12" src={profileLogo} alt='profileLogo' />
-        <button onClick={handleSignout} className='mx-4 font-bold text-white'>[ Log Out ]</button>
+        <img className=" h-12 my-4 mx-2 w-12" src={profileLogo} alt='profileLogo' />
+        <button onClick={handleSignout} className='mx-4   font-bold text-white'>[ Log Out ]</button>
 
       </div>
       )}
