@@ -6,7 +6,7 @@ import img1 from "../images/bg2.png";
 const GptSearch = () => {
   return (
     <div className='-mt-4 '>
-    <div className="absolute w-full -z-10">
+    <div className="fixed w-full -z-10">
         <img className=" w-full" src={img1} alt="bg-img" />
       </div>
         <GptSearchBar/>
