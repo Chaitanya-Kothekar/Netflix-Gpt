@@ -1,81 +1,92 @@
-import React, { useEffect } from 'react'
-import { getAuth, onAuthStateChanged, signOut} from "firebase/auth";
-import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { addUser, removeUser } from '../Utils/userSlice';
-import { profileLogo, logo, SUPPORTED_LANGUAGES} from './constants';
-import { toggleGptSearchView } from '../Utils/gptSlice';
-import { changeLanguage } from '../Utils/configSlice';
-
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { LOGO, SUPPORTED_LANGUAGES } from "../utils/constants";
+import { auth } from "../utils/firebase";
+import { addUser, removeUser } from "../utils/userSlice";
+import { toggleGptSearchView } from "../utils/gptSlice";
+import { changeLanguage } from "../utils/configSlice";
+import {USER_AVATAR}from "../utils/constants";
 
 const Header = () => {
-  const navigate = useNavigate();
-  const user = useSelector((store) => (store.user))
   const dispatch = useDispatch();
-  const showGptSearch = useSelector((store)=>store.gpt.showGptSearch);
-  const handleSignout = () => {
-    const auth = getAuth();
-    signOut(auth).then(() => {
-      // Sign-out successful.
-
-    }).catch((error) => {
-      // An error happened.
-      navigate("/error");
-    });
-  }
+  const navigate = useNavigate();
+  const user = useSelector((store) => store.user);
+  const showGptSearch = useSelector((store) => store.gpt.showGptSearch);
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {})
+      .catch((error) => {
+        navigate("/error");
+      });
+  };
 
   useEffect(() => {
-    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/auth.user
         const { uid, email, displayName } = user;
-        dispatch(addUser({ uid: uid, email: email, displayName: displayName }));
-        navigate("/Browse");
-        // ...
+        dispatch(
+          addUser({
+            uid: uid,
+            email: email,
+            displayName: displayName,
+          })
+        );
+        navigate("/browse");
       } else {
-        // User is signed out
         dispatch(removeUser());
         navigate("/");
-
       }
     });
+
+    // Unsiubscribe when component unmounts
     return () => unsubscribe();
   }, []);
 
   const handleGptSearchClick = () => {
-    // toggel GPT Search
+    // Toggle GPT Search
     dispatch(toggleGptSearchView());
-  }
+  };
 
-  const handleLanguageChange =(e) =>{
+  const handleLanguageChange = (e) => {
     dispatch(changeLanguage(e.target.value));
-  }
-
- 
+  };
 
   return (
-    <div className=' absolute bg-gradient-to-b from-black flex w-full z-10  justify-between' >
-      <img className="  px-3  w-64 " src={logo} alt='logo' />
-      {user && (<div className='flex p-2'>
-        {  showGptSearch && 
-          (
-              <select className='p-4 rounded-lg m-4 bg-gray-900 text-white' onChange={handleLanguageChange}>
-              {SUPPORTED_LANGUAGES.map( (lang) => (<option key={lang.identifier} value={lang.identifier}>{lang.name}</option>) )}
-              </select>
-           )
-        }
-      <button className='py-1 px-2 m-6  bg-white  font-bold rounded-2xl ' onClick={handleGptSearchClick}> { showGptSearch? "Home Page" : "GPT Search"}</button>
-        <img className=" h-10 my-6 mx-2 w-10" src={profileLogo} alt='profileLogo' />
-        <button onClick={handleSignout} className='mx-4   font-bold text-white'>[ Log Out ]</button>
-
-      </div>
+    <div className=" absolute bg-gradient-to-b from-black flex w-full z-10  justify-between flex-col md:flex-row">
+      <img className=" px-3  w-64 mx-auto mt-2 md:mx-0  " src={LOGO} alt="logo" />
+      {user && (
+        <div className="justify-between flex -mt-10 md:mt-0 p-2">
+          {showGptSearch && (
+            <select
+              className="p-4 rounded-lg m-4 bg-gray-900 text-white "
+              onChange={handleLanguageChange}
+            >
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.identifier} value={lang.identifier}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <button
+            className="y-1 px-2 m-6  bg-white  font-bold rounded-2xl"
+            onClick={handleGptSearchClick}
+          >
+            {showGptSearch ? "Homepage" : "GPT Search"}
+          </button>
+          <img
+            className="hidden md:block h-10 my-6 mx-2 w-10"
+            alt="usericon"
+            src={USER_AVATAR}
+          />
+          <button onClick={handleSignOut} className="mx-4 w-10  md: w-20  font-bold text-white">
+            (Sign Out)
+          </button>
+        </div>
       )}
     </div>
-
-
-  )
-}
-
-export default Header
+  );
+};
+export default Header;
